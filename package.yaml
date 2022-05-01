@@ -26,6 +26,7 @@ dependencies:
 - mtl
 - bytestring
 - binary
+- JuicyPixels-extra
 
 library:
   source-dirs: src

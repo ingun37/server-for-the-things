@@ -13,6 +13,7 @@ import Data.Word
 import Happstack.Server
 import Happstack.Server.Monads
 import Prelude hiding (readFile)
+import Codec.Picture.Extra
 
 theConf :: Conf
 theConf =
@@ -28,14 +29,14 @@ myPolicy :: BodyPolicy
 myPolicy = defaultBodyPolicy "/tmp/" (1024 * 1024 * 128) (1024 * 1024) 1024
 
 fTo8 :: Float -> Word8
-fTo8 = round . (8 *)
+fTo8 = round . (255 *) . min 1 . max 0
 
 getPixel :: Get PixelRGBA8
 getPixel = do
-  rf <- getFloatbe
-  gf <- getFloatbe
-  bf <- getFloatbe
-  af <- getFloatbe
+  rf <- getFloatle
+  gf <- getFloatle
+  bf <- getFloatle
+  af <- getFloatle
   return $ PixelRGBA8 (fTo8 rf) (fTo8 gf) (fTo8 bf) (fTo8 af)
 
 folder :: ByteString -> Int -> Int -> (ByteString, PixelRGBA8)
@@ -49,7 +50,7 @@ handlePNG tmpFilePath width height filename = do
   print "length is"
   print $ Data.ByteString.length b
   let (_, img) = generateFoldImage folder b width height
-  savePngImage filename (ImageRGBA8 img)
+  savePngImage filename (ImageRGBA8 (flipVertically img))
 
 --   generateFoldImage (acc -> Int -> Int -> (acc, a)) acc Int Int
 --   generateFoldImage folder b Int Int
