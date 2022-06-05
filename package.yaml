@@ -27,6 +27,9 @@ dependencies:
 - bytestring
 - binary
 - JuicyPixels-extra
+- aeson
+- directory
+- filepath
 
 library:
   source-dirs: src

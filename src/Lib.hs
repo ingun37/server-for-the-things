@@ -14,6 +14,8 @@ import Happstack.Server
 import Happstack.Server.Monads
 import Prelude hiding (readFile)
 import Codec.Picture.Extra
+import System.Directory
+import System.FilePath
 
 theConf :: Conf
 theConf =
@@ -31,26 +33,37 @@ myPolicy = defaultBodyPolicy "/tmp/" (1024 * 1024 * 128) (1024 * 1024) 1024
 fTo8 :: Float -> Word8
 fTo8 = round . (255 *) . min 1 . max 0
 
-getPixel :: Get PixelRGBA8
-getPixel = do
-  rf <- getFloatle
-  gf <- getFloatle
-  bf <- getFloatle
-  af <- getFloatle
-  return $ PixelRGBA8 (fTo8 rf) (fTo8 gf) (fTo8 bf) (fTo8 af)
+-- getPixelF :: Get PixelRGBA8
+-- getPixelF = do
+--   rf <- getFloatle
+--   gf <- getFloatle
+--   bf <- getFloatle
+--   af <- getFloatle
+--   return $ PixelRGBA8 (fTo8 rf) (fTo8 gf) (fTo8 bf) (fTo8 af)
+
+getPixelU8 :: Get PixelRGBA8
+getPixelU8 = do
+  r <- getWord8
+  g <- getWord8
+  b <- getWord8
+  a <- getWord8
+  return $ PixelRGBA8 r g b a
 
 folder :: ByteString -> Int -> Int -> (ByteString, PixelRGBA8)
 folder bs _ _ =
-  let (head, tail) = Data.ByteString.splitAt 16 bs
-   in (tail, runGet getPixel (fromStrict head))
+  let (head, tail) = Data.ByteString.splitAt 4 bs
+   in (tail, runGet getPixelU8 (fromStrict head))
+
+userContentsDirName = "user-contents"
 
 handlePNG :: FilePath -> Int -> Int -> String -> IO ()
 handlePNG tmpFilePath width height filename = do
   b <- readFile tmpFilePath
+  let getComponent = getWord8
   print "length is"
   print $ Data.ByteString.length b
   let (_, img) = generateFoldImage folder b width height
-  savePngImage filename (ImageRGBA8 (flipVertically img))
+  savePngImage (userContentsDirName </> filename) (ImageRGBA8 (flipVertically img))
 
 --   generateFoldImage (acc -> Int -> Int -> (acc, a)) acc Int Int
 --   generateFoldImage folder b Int Int
@@ -81,5 +94,6 @@ handlers =
       ]
 
 someFunc :: IO ()
-someFunc =
+someFunc = do
+  createDirectoryIfMissing True userContentsDirName
   simpleHTTP theConf $ handlers
