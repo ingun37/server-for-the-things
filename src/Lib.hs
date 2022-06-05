@@ -41,28 +41,30 @@ fTo8 = round . (255 *) . min 1 . max 0
 --   af <- getFloatle
 --   return $ PixelRGBA8 (fTo8 rf) (fTo8 gf) (fTo8 bf) (fTo8 af)
 
-getPixelU8 :: Get PixelRGBA8
-getPixelU8 = do
-  r <- getWord8
-  g <- getWord8
-  b <- getWord8
-  a <- getWord8
+getPixel :: Get Word8 -> Get PixelRGBA8
+getPixel getC = do
+  r <- getC
+  g <- getC
+  b <- getC
+  a <- getC
   return $ PixelRGBA8 r g b a
 
-folder :: ByteString -> Int -> Int -> (ByteString, PixelRGBA8)
-folder bs _ _ =
-  let (head, tail) = Data.ByteString.splitAt 4 bs
-   in (tail, runGet getPixelU8 (fromStrict head))
+folder :: Get Word8 -> Int -> ByteString -> Int -> Int -> (ByteString, PixelRGBA8)
+folder getC pixelByteLen bs _ _ =
+  let (head, tail) = Data.ByteString.splitAt pixelByteLen bs
+   in (tail, runGet (getPixel getC) (fromStrict head))
 
 userContentsDirName = "user-contents"
 
 handlePNG :: FilePath -> Int -> Int -> String -> IO ()
 handlePNG tmpFilePath width height filename = do
   b <- readFile tmpFilePath
-  let getComponent = getWord8
+  let byteLen = Data.ByteString.length b
   print "length is"
-  print $ Data.ByteString.length b
-  let (_, img) = generateFoldImage folder b width height
+  print byteLen
+  let pixelByteLen = byteLen `div` width `div` height
+  let getComponent = if pixelByteLen == 4 then getWord8 else fTo8 <$> getFloatle
+  let (_, img) = generateFoldImage (folder getComponent pixelByteLen) b width height
   savePngImage (userContentsDirName </> filename) (ImageRGBA8 (flipVertically img))
 
 --   generateFoldImage (acc -> Int -> Int -> (acc, a)) acc Int Int
