@@ -9,6 +9,8 @@ import Control.Monad.Trans (MonadIO (liftIO))
 import Data.Binary.Get
 import Data.ByteString
 import Data.ByteString.Lazy (fromStrict, toStrict)
+import Data.ByteString.Lazy.UTF8 (fromString)
+import qualified Data.ByteString.Lazy as L
 import Data.Word
 import Happstack.Server
 import Happstack.Server.Monads
@@ -16,6 +18,7 @@ import Prelude hiding (readFile)
 import Codec.Picture.Extra
 import System.Directory
 import System.FilePath
+import UnzipStream (extractFirstEntryFromZipURL)
 
 theConf :: Conf
 theConf =
@@ -92,8 +95,20 @@ handlers =
           liftIO $ handlePNG tmpFilePath (read widthStr) (read heightStr) fileName
           ok $ do toResponse "You did a GET request on /foo\n",
         dir "hello" $ do
-          ok $ toResponse "hello"
+          ok $ toResponse "hello",
+        dir "streamunzip" $ do
+          toResponse <$> streamUnzip
       ]
+
+streamUnzip :: ServerPart L.ByteString 
+streamUnzip = 
+  do
+    url <- look "url"
+    liftIO $ print url
+    firstEntry <- liftIO $ extractFirstEntryFromZipURL url
+    case firstEntry of
+      Just bytes -> ok $ fromStrict bytes
+      Nothing -> badRequest (fromString "Failed to get first entry from remote primitive file")
 
 someFunc :: IO ()
 someFunc = do

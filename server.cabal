@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      UnzipStream
   other-modules:
       Paths_server
   hs-source-dirs:
@@ -37,10 +38,19 @@ library
     , base >=4.7 && <5
     , binary
     , bytestring
+    , containers
     , directory
     , filepath
     , happstack-server
+    , http-streams
+    , io-streams
     , mtl
+    , network-uri
+    , optics
+    , temporary
+    , text
+    , utf8-string
+    , zip
   default-language: Haskell2010
 
 executable server-exe
@@ -57,11 +67,20 @@ executable server-exe
     , base >=4.7 && <5
     , binary
     , bytestring
+    , containers
     , directory
     , filepath
     , happstack-server
+    , http-streams
+    , io-streams
     , mtl
+    , network-uri
+    , optics
     , server
+    , temporary
+    , text
+    , utf8-string
+    , zip
   default-language: Haskell2010
 
 test-suite server-test
@@ -79,9 +98,18 @@ test-suite server-test
     , base >=4.7 && <5
     , binary
     , bytestring
+    , containers
     , directory
     , filepath
     , happstack-server
+    , http-streams
+    , io-streams
     , mtl
+    , network-uri
+    , optics
     , server
+    , temporary
+    , text
+    , utf8-string
+    , zip
   default-language: Haskell2010

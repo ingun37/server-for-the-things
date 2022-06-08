@@ -30,6 +30,15 @@ dependencies:
 - aeson
 - directory
 - filepath
+- network-uri
+- zip
+- temporary
+- containers
+- optics
+- http-streams
+- text
+- io-streams
+- utf8-string
 
 library:
   source-dirs: src
